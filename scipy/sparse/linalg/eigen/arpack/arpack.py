@@ -747,11 +747,11 @@ class _UnsymmetricArpackParams(_ArpackParams):
             else:
                 raise ArpackError(self.info, infodict=self.iterate_infodict)
 
-    def extract(self, return_eigenvectors):
+    def extract(self, return_eigenvectors, schur=False):
         k, n = self.k, self.n
 
         ierr = 0
-        howmny = 'A'  # return all eigenvectors
+        howmny = 'P' if schur else 'A'  # return all eigenvectors, see also: http://www.caam.rice.edu/software/ARPACK/UG/node42.html
         sselect = np.zeros(self.ncv, 'int')  # unused
         sigmar = np.real(self.sigma)
         sigmai = np.imag(self.sigma)
@@ -1048,7 +1048,7 @@ def get_OPinv_matvec(A, M, sigma, symmetric=False, tol=0):
 
 def eigs(A, k=6, M=None, sigma=None, which='LM', v0=None,
          ncv=None, maxiter=None, tol=0, return_eigenvectors=True,
-         Minv=None, OPinv=None, OPpart=None):
+         Minv=None, OPinv=None, OPpart=None, schur=False):
     """
     Find k eigenvalues and eigenvectors of the square matrix A.
 
@@ -1146,6 +1146,8 @@ def eigs(A, k=6, M=None, sigma=None, which='LM', v0=None,
         See notes in sigma, above.
     OPpart : {'r' or 'i'}, optional
         See notes in sigma, above
+    schur : bool, optional
+        Whether to return the Schur basis
 
     Returns
     -------
@@ -1273,7 +1275,7 @@ def eigs(A, k=6, M=None, sigma=None, which='LM', v0=None,
     while not params.converged:
         params.iterate()
 
-    return params.extract(return_eigenvectors)
+    return params.extract(return_eigenvectors, schur=schur)
 
 
 def eigsh(A, k=6, M=None, sigma=None, which='LM', v0=None,
